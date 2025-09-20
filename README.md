@@ -1,5 +1,42 @@
 # OpenTelemetry Demo (otel-demo)
 
+A well-organized Node.js Express application demonstrating OpenTelemetry tracing, observability best practices, and clean architecture with a beautiful dashboard for presentations.
+
+## 🎯 **What's New: Interactive Presentation Dashboard**
+
+This project now includes a comprehensive web-based dashboard perfect for demonstrations and presentations! 
+
+### 📊 **Dashboard Features**
+- ✨ **Real-time Metrics**: Live updates of request counts, response times, error rates
+- 🔄 **WebSocket Integration**: Automatic updates without page refresh
+- 📈 **Interactive Charts**: Response time trends and request volume visualization
+- 🧪 **API Testing Interface**: Test all endpoints directly from the dashboard
+- 🕵️ **Trace Visualization**: View recent traces with detailed information
+- 📱 **Responsive Design**: Works perfectly on all devices
+
+### 🚀 **Quick Start with Dashboard**
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Start the server:**
+   ```bash
+   npm start
+   ```
+
+3. **Open the dashboard:**
+   Navigate to [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
+
+4. **Start testing:**
+   Use the API testing interface to generate traces and see real-time updates!
+
+## 📚 **Documentation**
+
+- 📋 **[PROJECT-OVERVIEW.md](./PROJECT-OVERVIEW.md)** - Detailed explanation of what each file does and how they work together
+- 📚 **This README** - Quick start guide and dashboard usage instructionslemetry Demo (otel-demo)
+
 A well-organized Node.js Express application demonstrating OpenTelemetry tracing, observability best practices, and clean architecture.
 
 ## � **Documentation**
@@ -23,6 +60,10 @@ This project showcases how to integrate OpenTelemetry into a Node.js Express app
 
 ```
 opentelemetry-nodejs-example/
+├── public/                       # 🎨 Dashboard UI Files (NEW!)
+│   ├── index.html               # Main dashboard page
+│   ├── styles.css               # Dashboard styling
+│   └── dashboard.js             # Dashboard JavaScript with WebSocket
 ├── src/                          # Source code
 │   ├── config/                   # Configuration modules
 │   │   ├── environment.js        # Environment variables and config
@@ -31,18 +72,28 @@ opentelemetry-nodejs-example/
 │   │   ├── errorHandler.js      # Error handling middleware
 │   │   └── logging.js           # Request logging middleware
 │   ├── routes/                   # Route handlers
-│   │   ├── api.js               # Main API routes
+│   │   ├── api.js               # Main API routes + metrics endpoints
 │   │   └── health.js            # Health check routes
 │   └── utils/                    # Utility functions
 │       └── server.js            # Server utilities and graceful shutdown
-├── server.js                     # Main application entry point
+├── server.js                     # Main application entry point + WebSocket
 ├── app.js                        # Simple alternative entry point
 ├── instrumentation.js            # Basic OpenTelemetry setup
-├── package.json                  # Dependencies and scripts
+├── package.json                  # Dependencies and scripts (+ socket.io)
 └── README.md                    # This file
 ```
 
 ## Features
+
+### 🎨 **Interactive Presentation Dashboard** (NEW!)
+- **Real-time Metrics Display**: Total requests, average response time, error rates
+- **Live Data Updates**: WebSocket-powered real-time updates
+- **Interactive API Testing**: Test endpoints with custom parameters directly from UI
+- **Visual Trace Explorer**: See traces appear in real-time as requests are made
+- **Performance Charts**: Response time trends and request volume visualization
+- **System Monitoring**: Service details, uptime, memory usage, and system metrics
+- **Load Testing Tools**: Built-in load testing with configurable request patterns
+- **Mobile Responsive**: Perfect for presentations on any device
 
 ### 🔍 **Observability**
 - Automatic HTTP request/response tracing

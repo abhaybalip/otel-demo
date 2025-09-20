@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenTelemetry Demo Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-chart-line"></i> OpenTelemetry Demo Dashboard</h1>
+                <div class="status-indicator">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span id="status-text">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <main class="main-grid">
+            <!-- Service Info Card -->
+            <div class="card service-info">
+                <h2><i class="fas fa-server"></i> Service Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <label>Service Name:</label>
+                        <span id="service-name">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Version:</label>
+                        <span id="service-version">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Environment:</label>
+                        <span id="service-env">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Uptime:</label>
+                        <span id="service-uptime">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time Metrics -->
+            <div class="card metrics">
+                <h2><i class="fas fa-tachometer-alt"></i> Real-time Metrics</h2>
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value" id="total-requests">0</div>
+                        <div class="metric-label">Total Requests</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="avg-response-time">0ms</div>
+                        <div class="metric-label">Avg Response Time</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="error-rate">0%</div>
+                        <div class="metric-label">Error Rate</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="requests-per-min">0</div>
+                        <div class="metric-label">Requests/min</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Testing Interface -->
+            <div class="card api-testing">
+                <h2><i class="fas fa-flask"></i> API Testing</h2>
+                <div class="test-controls">
+                    <div class="control-group">
+                        <label for="endpoint-select">Endpoint:</label>
+                        <select id="endpoint-select">
+                            <option value="/">Home</option>
+                            <option value="/health">Health Check</option>
+                            <option value="/health/detailed">Detailed Health</option>
+                            <option value="/slow">Slow Endpoint</option>
+                            <option value="/error">Error Endpoint</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="delay-input">Delay (ms):</label>
+                        <input type="number" id="delay-input" placeholder="500" min="100" max="10000">
+                    </div>
+                    <button id="test-btn" class="btn btn-primary">
+                        <i class="fas fa-play"></i> Test Endpoint
+                    </button>
+                    <button id="load-test-btn" class="btn btn-secondary">
+                        <i class="fas fa-bolt"></i> Load Test (10 requests)
+                    </button>
+                </div>
+                <div class="test-results" id="test-results">
+                    <div class="no-results">Click "Test Endpoint" to see results</div>
+                </div>
+            </div>
+
+            <!-- Recent Traces -->
+            <div class="card traces">
+                <h2><i class="fas fa-route"></i> Recent Traces</h2>
+                <div class="traces-container" id="traces-container">
+                    <div class="no-traces">No traces yet. Make some API calls to see traces appear here.</div>
+                </div>
+            </div>
+
+            <!-- Response Time Chart -->
+            <div class="card chart response-time-chart">
+                <h2><i class="fas fa-chart-area"></i> Response Time Trends</h2>
+                <canvas id="responseTimeChart" width="400" height="200"></canvas>
+            </div>
+
+            <!-- Request Volume Chart -->
+            <div class="card chart request-volume-chart">
+                <h2><i class="fas fa-chart-bar"></i> Request Volume</h2>
+                <canvas id="requestVolumeChart" width="400" height="200"></canvas>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>OpenTelemetry Demo Dashboard | Last updated: <span id="last-updated">Never</span></p>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

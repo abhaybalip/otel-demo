@@ -117,4 +117,87 @@ router.all('/echo', (req, res) => {
   res.json(echo);
 });
 
+/**
+ * Metrics endpoint for dashboard
+ */
+router.get('/metrics', (req, res) => {
+  // In a real application, these would come from your metrics collector
+  // For demo purposes, we'll return mock data
+  const metrics = {
+    timestamp: new Date().toISOString(),
+    service: {
+      name: config.telemetry.serviceName,
+      version: config.telemetry.serviceVersion,
+      environment: config.server.environment,
+      uptime: process.uptime()
+    },
+    system: {
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
+        external: Math.round(process.memoryUsage().external / 1024 / 1024)
+      },
+      cpu: {
+        usage: Math.random() * 100 // Mock CPU usage
+      }
+    },
+    http: {
+      totalRequests: Math.floor(Math.random() * 1000) + 100,
+      requestsPerMinute: Math.floor(Math.random() * 60) + 10,
+      averageResponseTime: Math.floor(Math.random() * 500) + 50,
+      errorRate: Math.random() * 5 // 0-5% error rate
+    }
+  };
+
+  res.json(metrics);
+});
+
+/**
+ * Traces endpoint for dashboard
+ */
+router.get('/traces', (req, res) => {
+  // In a real application, these would come from your tracing backend
+  // For demo purposes, we'll return mock trace data
+  const traces = [];
+  const operations = ['GET /', 'GET /health', 'GET /slow', 'GET /error', 'POST /echo'];
+  
+  for (let i = 0; i < 10; i++) {
+    const operation = operations[Math.floor(Math.random() * operations.length)];
+    const duration = Math.floor(Math.random() * 1000) + 10;
+    const status = Math.random() > 0.1 ? 200 : [400, 404, 500][Math.floor(Math.random() * 3)];
+    
+    traces.push({
+      traceId: generateTraceId(),
+      spanId: generateSpanId(),
+      operation: operation,
+      duration: duration,
+      status: status,
+      timestamp: new Date(Date.now() - Math.random() * 300000).toISOString(), // Last 5 minutes
+      tags: {
+        'http.method': operation.split(' ')[0],
+        'http.url': operation.split(' ')[1],
+        'http.status_code': status
+      }
+    });
+  }
+  
+  // Sort by timestamp descending
+  traces.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  
+  res.json({
+    traces: traces,
+    total: traces.length,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Helper functions for generating trace/span IDs
+function generateTraceId() {
+  return Array.from({length: 32}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+}
+
+function generateSpanId() {
+  return Array.from({length: 16}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+}
+
 module.exports = router;
