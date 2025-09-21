@@ -1,447 +1,309 @@
-# OpenTelemetry Demo (otel-demo)
+# Node.js OpenTelemetry + Prometheus Sample Application
 
-A well-organized Node.js Express application demonstrating OpenTelemetry tracing, observability best practices, and clean architecture with a beautiful dashboard for presentations.
+A comprehensive Express.js application demonstrating the integration of OpenTelemetry with Prometheus using the **pull-based model**. The OpenTelemetry Collector acts as a bridge, scraping Prometheus metrics from the application and converting them to OTLP format.
 
-## 🎯 **What's New: Interactive Presentation Dashboard**
-
-This project now includes a comprehensive web-based dashboard perfect for demonstrations and presentations! 
-
-### 📊 **Dashboard Features**
-- ✨ **Real-time Metrics**: Live updates of request counts, response times, error rates
-- 🔄 **WebSocket Integration**: Automatic updates without page refresh
-- 📈 **Interactive Charts**: Response time trends and request volume visualization
-- 🧪 **API Testing Interface**: Test all endpoints directly from the dashboard
-- 🕵️ **Trace Visualization**: View recent traces with detailed information
-- 📱 **Responsive Design**: Works perfectly on all devices
-
-### 🚀 **Quick Start with Dashboard**
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Start the server:**
-   ```bash
-   npm start
-   ```
-
-3. **Open the dashboard:**
-   Navigate to [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-
-4. **Start testing:**
-   Use the API testing interface to generate traces and see real-time updates!
-
-## 📚 **Documentation**
-
-- 📋 **[PROJECT-OVERVIEW.md](./PROJECT-OVERVIEW.md)** - Detailed explanation of what each file does and how they work together
-- 📚 **This README** - Quick start guide and dashboard usage instructionslemetry Demo (otel-demo)
-
-A well-organized Node.js Express application demonstrating OpenTelemetry tracing, observability best practices, and clean architecture.
-
-## � **Documentation**
-
-- � **[PROJECT-OVERVIEW.md](./PROJECT-OVERVIEW.md)** - Detailed explanation of what each file does and how they work together
-- � **This README** - Quick start guide and usage instructions
-
-## Overview
-
-This project showcases how to integrate OpenTelemetry into a Node.js Express application using modern development practices, including:
-
-- ✅ Modular architecture with separation of concerns
-- ✅ OpenTelemetry instrumentation with automatic tracing
-- ✅ Environment-based configuration
-- ✅ Comprehensive error handling and logging
-- ✅ Health check endpoints
-- ✅ Graceful shutdown handling
-- ✅ Development and production-ready setup
-
-## Project Structure
+## Architecture
 
 ```
-opentelemetry-nodejs-example/
-├── public/                       # 🎨 Dashboard UI Files (NEW!)
-│   ├── index.html               # Main dashboard page
-│   ├── styles.css               # Dashboard styling
-│   └── dashboard.js             # Dashboard JavaScript with WebSocket
-├── src/                          # Source code
-│   ├── config/                   # Configuration modules
-│   │   ├── environment.js        # Environment variables and config
-│   │   └── telemetry.js         # OpenTelemetry setup
-│   ├── middleware/               # Express middleware
-│   │   ├── errorHandler.js      # Error handling middleware
-│   │   └── logging.js           # Request logging middleware
-│   ├── routes/                   # Route handlers
-│   │   ├── api.js               # Main API routes + metrics endpoints
-│   │   └── health.js            # Health check routes
-│   └── utils/                    # Utility functions
-│       └── server.js            # Server utilities and graceful shutdown
-├── server.js                     # Main application entry point + WebSocket
-├── app.js                        # Simple alternative entry point
-├── instrumentation.js            # Basic OpenTelemetry setup
-├── package.json                  # Dependencies and scripts (+ socket.io)
-└── README.md                    # This file
+┌─────────────────┐    ┌──────────────────────┐    ┌─────────────┐
+│   Node.js App   │───▶│  OTel Collector      │───▶│ Prometheus  │
+│                 │    │  (Scrapes /metrics)  │    │  (Storage)  │
+│ - Prometheus    │    │                      │    └─────────────┘
+│   metrics       │    │ - Prometheus Receiver│
+│ - OTLP traces   │────┤ - OTLP Receiver     │    ┌─────────────┐
+└─────────────────┘    │ - Batch Processing   │───▶│   Jaeger    │
+                       └──────────────────────┘    │  (Tracing)  │
+                                                   └─────────────┘
 ```
 
 ## Features
 
-### 🎨 **Interactive Presentation Dashboard** (NEW!)
-- **Real-time Metrics Display**: Total requests, average response time, error rates
-- **Live Data Updates**: WebSocket-powered real-time updates
-- **Interactive API Testing**: Test endpoints with custom parameters directly from UI
-- **Visual Trace Explorer**: See traces appear in real-time as requests are made
-- **Performance Charts**: Response time trends and request volume visualization
-- **System Monitoring**: Service details, uptime, memory usage, and system metrics
-- **Load Testing Tools**: Built-in load testing with configurable request patterns
-- **Mobile Responsive**: Perfect for presentations on any device
+- 🚀 Express.js web server
+- 📊 OpenTelemetry auto-instrumentation + manual spans
+- 📈 Prometheus metrics endpoint with custom business metrics
+- � OpenTelemetry Collector as metrics bridge (pull-based)
+- 🎯 Jaeger integration for distributed tracing
+- 📉 Grafana dashboards for visualization
+- ⚡ Error tracking and exception recording
+- 🎯 Multiple API endpoints for testing
 
-### 🔍 **Observability**
-- Automatic HTTP request/response tracing
-- Express.js route tracing
-- Custom span attributes and metadata
-- Comprehensive error tracking
-- Performance monitoring
-
-### 🏗️ **Architecture**
-- Modular design with clear separation of concerns
-- Environment-based configuration
-- Centralized error handling
-- Structured logging
-- Graceful shutdown handling
-
-### 🛠️ **Developer Experience**
-- Hot reload with nodemon
-- Environment variable support
-- Comprehensive health checks
-- Detailed startup information
-- Development and production modes
-
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Node.js (version 14 or higher)
-- npm (comes with Node.js)
+- npm or yarn
 
-### Installation
+## Quick Start
 
-1. Clone or download this project
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Option 1: Application Only (Recommended for Development)
 
-### Running the Application
+**Windows (PowerShell):**
+```powershell
+.\start-demo.ps1
+```
 
-This project has **two different entry points** you can choose from:
-
-#### 🚀 **Option 1: Full Featured Application (Recommended)**
-Uses the modular structure with `server.js`:
-
+**Linux/Mac (Bash):**
 ```bash
-# Development mode (with hot reload)
-npm run dev
+./start-demo.sh
+```
 
-# Production mode
+### Option 2: Manual Setup
+
+1. **Install dependencies:**
+```bash
+npm install
+```
+
+2. **Start optional dev services:**
+```bash
+COMPOSE_PROFILES=dev-tools docker-compose up -d
+```
+
+3. **Start the Node.js application:**
+```bash
 npm start
 ```
 
-#### 🎓 **Option 2: Simple Learning Example**
-Uses the basic `app.js` for learning:
+### Option 3: Production Deployment
 
+For production monitoring with separate collector server:
+
+1. **Deploy collector on monitoring server:**
 ```bash
-# Run the simple version
-node app.js
+cd otel-collector-deployment
+cp .env.example .env
+# Edit .env with your configuration
+.\deploy.ps1
 ```
 
-**Note**: Fix the import in `app.js` first by changing line 8:
-```javascript
-// Change from:
-require('instrumentation');
-// To:
-require('./instrumentation');
+2. **Configure Node.js app for remote collector:**
+```bash
+# Create .env file in app directory
+OTEL_COLLECTOR_URL=http://your-collector-server:4318/v1/traces
 ```
 
-The server will start on `http://localhost:3000` by default.
+The application will start on `http://localhost:3000`
 
-### 📊 **Entry Points Comparison**
+## Access Points
 
-| Feature | `server.js` (Recommended) | `app.js` (Simple) |
-|---------|---------------------------|-------------------|
-| **Best for** | Production, learning architecture | Quick start, basic concepts |
-| **Structure** | Modular, organized folders | Single file |
-| **Configuration** | Environment-based | Hardcoded |
-| **Error Handling** | Comprehensive middleware | Basic try-catch |
-| **Health Checks** | Multiple endpoints | Single endpoint |
-| **Logging** | Structured logging | Simple console.log |
-| **Shutdown** | Graceful shutdown | Basic process exit |
-| **OpenTelemetry** | Advanced setup | Basic setup |
+### Development Mode
+- **Application**: http://localhost:3000
+- **Prometheus Metrics**: http://localhost:3000/metrics
+- **Dev Prometheus**: http://localhost:9090 (if dev-tools profile enabled)
+- **Dev Jaeger**: http://localhost:16686 (if dev-tools profile enabled)
 
-## Available Routes
+### Production Mode (with separate collector)
+- **Application**: http://localhost:3000
+- **Collector**: http://collector-server:8888/metrics
+- **Production Prometheus**: http://prometheus-server:9090
+- **Production Jaeger**: http://jaeger-server:16686
 
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/` | GET | Welcome message with service info |
-| `/health` | GET | Basic health check |
-| `/health/detailed` | GET | Detailed health information |
-| `/slow` | GET | Slow response demo (supports `?delay=ms`) |
-| `/error` | GET | Error testing (supports `?type=error_type`) |
-| `/echo` | ALL | Request echo endpoint |
+## API Endpoints
 
-### Route Examples
+### Health Check
+- **GET** `/` - Basic application info
+- **GET** `/health` - Health check with uptime
+
+### Users API
+- **GET** `/users` - Get all users (with database simulation)
+- **GET** `/users/:id` - Get user by ID (with validation)
+- **POST** `/users` - Create new user
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+  ```
+
+### Metrics & Monitoring
+- **GET** `/metrics` - Prometheus metrics endpoint
+- **GET** `/error` - Intentional error for testing error tracking
+
+## Available Metrics
+
+### HTTP Metrics
+- `http_requests_total{method, route, status_code}` - Total HTTP requests
+- `http_request_duration_seconds{method, route, status_code}` - Request duration histogram
+- `http_active_connections` - Active HTTP connections
+
+### Database Metrics
+- `db_operations_total{operation, table, status}` - Database operation counter
+- `db_operation_duration_seconds{operation, table}` - Database operation duration
+
+### Business Metrics  
+- `user_operations_total{operation, status}` - User-specific operations
+- `app_info{version, name, environment}` - Application information
+
+### System Metrics (Node.js)
+- `nodejs_*` - CPU, memory, event loop, garbage collection stats
+
+## Observability Features
+
+### Prometheus Metrics (Pull-Based)
+- **Application Metrics**: Custom business metrics exposed at `/metrics`
+- **Default Node.js Metrics**: CPU, memory, event loop, GC stats
+- **HTTP Metrics**: Request count, duration, active connections
+- **Database Metrics**: Operation count, duration, status
+- **User Operation Metrics**: Business-specific counters
+
+### OpenTelemetry Tracing
+- **Auto-Instrumentation**: HTTP requests, Express routes
+- **Manual Spans**: Custom business logic tracing
+- **Span Attributes**: Rich metadata and context
+- **Error Tracking**: Exception recording and error spans
+- **Nested Spans**: Parent-child relationships
+
+### OpenTelemetry Collector
+- **Prometheus Receiver**: Scrapes metrics from `/metrics` endpoint
+- **OTLP Receiver**: Receives traces from the application
+- **Data Processing**: Batch processing, resource attribution
+- **Multi-Export**: Sends data to Prometheus and Jaeger
+
+## Example Usage
+
+### 1. Start the Complete Stack
 
 ```bash
-# Basic endpoints
-curl http://localhost:3000
+# Start monitoring infrastructure
+docker-compose up -d
+
+# Start the Node.js application
+npm start
+```
+
+### 2. Generate Some Traffic
+
+```bash
+# Basic health check
 curl http://localhost:3000/health
 
-# Test slow response with custom delay
-curl "http://localhost:3000/slow?delay=1000"
+# Get all users (generates db metrics)
+curl http://localhost:3000/users
 
-# Test error handling
-curl "http://localhost:3000/error?type=validation"
-curl "http://localhost:3000/error?type=auth"
+# Get specific user (with validation metrics)
+curl http://localhost:3000/users/123
 
-# Echo request data
-curl -X POST http://localhost:3000/echo \
+# Create a new user (creates various metrics)
+curl -X POST http://localhost:3000/users \
   -H "Content-Type: application/json" \
-  -d '{"test": "data"}'
+  -d '{"name": "Alice Smith", "email": "alice@example.com"}'
+
+# Trigger an error (error metrics)
+curl http://localhost:3000/error
+
+# View raw Prometheus metrics
+curl http://localhost:3000/metrics
 ```
 
-## Configuration
+### 3. Explore the Data
 
-The application uses environment variables for configuration. Copy `.env.example` to `.env` and customize:
+**Prometheus Queries** (http://localhost:9090):
+```promql
+# HTTP request rate
+rate(http_requests_total[5m])
 
-```bash
-# Server Configuration
-PORT=3000
-NODE_ENV=development
+# HTTP request duration 95th percentile  
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 
-# OpenTelemetry Configuration
-OTEL_SERVICE_NAME=nodejs-opentelemetry-app
-OTEL_SERVICE_VERSION=1.0.0
-OTEL_ENVIRONMENT=development
+# Database operation errors
+rate(db_operations_total{status="error"}[5m])
 
-# Tracing Configuration
-OTEL_EXPORTER_CONSOLE_ENABLED=true
-OTEL_SAMPLING_RATIO=1.0
+# User operation success rate
+rate(user_operations_total{status="success"}[5m]) / rate(user_operations_total[5m])
 ```
 
-## Understanding the Code
+**Jaeger Traces** (http://localhost:16686):
+- Search for traces by service name: `node-otel-app`
+- View trace details including spans and timing
+- Analyze request flow and performance
 
-### Telemetry Setup (`src/config/telemetry.js`)
+**Grafana Dashboards** (http://localhost:3001):
+- Login: admin/admin
+- Create dashboards using Prometheus datasource
+- Visualize metrics with graphs and alerts
 
-The telemetry configuration automatically instruments HTTP requests and Express routes:
+## Architecture Deep Dive
 
-```javascript
-const { NodeSDK } = require('@opentelemetry/sdk-node');
-const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+### Pull-Based Metrics Collection
 
-const sdk = new NodeSDK({
-  serviceName: 'nodejs-opentelemetry-app',
-  instrumentations: [getNodeAutoInstrumentations()],
-});
+This implementation demonstrates the **first method** of OpenTelemetry + Prometheus integration:
+
+1. **Node.js App** exposes metrics at `/metrics` in Prometheus format
+2. **OpenTelemetry Collector** scrapes these metrics using Prometheus Receiver
+3. **Collector** converts metrics to OTLP format and processes them
+4. **Collector** exports metrics to Prometheus via Remote Write API
+5. **Prometheus** stores and serves metrics for querying
+6. **Grafana** visualizes metrics from Prometheus
+
+### Data Flow
+
+```
+App Metrics (/metrics) → Collector (Prometheus Receiver) → Collector (Processors) → Prometheus (Remote Write)
+App Traces (OTLP) → Collector (OTLP Receiver) → Collector (Processors) → Jaeger
 ```
 
-### Application Structure (`server.js`)
+## Configuration Files
 
-The main application follows Express.js best practices:
-
-```javascript
-// Initialize telemetry first
-require('./src/config/telemetry');
-
-const app = express();
-
-// Middleware
-app.use(createRequestLogger());
-
-// Routes
-app.use('/health', healthRoutes);
-app.use('/', apiRoutes);
-
-// Error handling
-app.use(notFoundHandler);
-app.use(errorHandler);
-```
-
-### Environment Configuration (`src/config/environment.js`)
-
-Centralized configuration management with defaults:
-
-```javascript
-const config = {
-  server: {
-    port: parseInt(process.env.PORT, 10) || 3000,
-    environment: process.env.NODE_ENV || 'development'
-  },
-  telemetry: {
-    serviceName: process.env.OTEL_SERVICE_NAME || 'nodejs-opentelemetry-app'
-  }
-};
-```
-
-## Development
-
-### Available Scripts
-
-- `npm start` - Start production server
-- `npm run dev` - Start development server with hot reload
-- `npm run dev:env` - Start with custom environment file
-- `npm run check:health` - Test health endpoint
-- `npm run check:detailed` - Test detailed health endpoint
-
-### Adding New Routes
-
-1. Create route handler in `src/routes/`
-2. Import and mount in `server.js`
-3. Add documentation to README
-
-### Adding Middleware
-
-1. Create middleware in `src/middleware/`
-2. Export as a function
-3. Apply in `server.js`
-
-## Testing Tracing
-
-1. Start the application:
-   ```bash
-   npm run dev
-   ```
-
-2. Make requests to see traces in console output:
-   ```bash
-   curl http://localhost:3000
-   curl http://localhost:3000/slow
-   curl http://localhost:3000/health/detailed
-   ```
-
-3. Check console for OpenTelemetry trace information
-
-## Production Deployment
+- `otel-collector-config.yaml` - Collector configuration
+- `prometheus.yml` - Prometheus scraping configuration  
+- `docker-compose.yml` - Complete monitoring stack
+- `metrics.js` - Prometheus metrics definitions
 
 ### Environment Variables
 
-Set these environment variables for production:
+You can customize the application behavior with environment variables:
 
 ```bash
-NODE_ENV=production
-PORT=3000
-OTEL_SERVICE_NAME=your-service-name
-OTEL_SERVICE_VERSION=1.0.0
-OTEL_ENVIRONMENT=production
+# Change the port
+PORT=4000 npm start
+
+# Service name for traces
+OTEL_SERVICE_NAME="my-custom-app" npm start
+
+# Jaeger endpoint
+OTEL_EXPORTER_JAEGER_ENDPOINT="http://localhost:14268/api/traces" npm start
 ```
 
-### Health Checks
+## Project Structure
 
-Use the health endpoints for monitoring:
+```
+├── app.js           # Main Express application
+├── telemetry.js     # OpenTelemetry configuration
+├── package.json     # Dependencies and scripts
+└── README.md        # This file
+```
 
-- `GET /health` - Basic health check
-- `GET /health/detailed` - Comprehensive health information
+## Key OpenTelemetry Concepts
+
+- **Traces**: Complete request journey
+- **Spans**: Individual operations within a trace
+- **Attributes**: Key-value metadata attached to spans
+- **Events**: Timestamped messages within spans
+- **Context**: Propagation of trace information across operations
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Port already in use**: Change `PORT` in `.env` file
-2. **Module not found**: Run `npm install`
-3. **Permission denied**: Check file permissions and execution policy
+1. **No traces appearing**: Check that the telemetry.js file is being loaded before your application code
+2. **Module not found errors**: Run `npm install` to ensure all dependencies are installed
+3. **Port conflicts**: Change the PORT environment variable if 3000 is already in use
 
 ### Debug Mode
 
-Enable detailed logging by setting:
+To see more detailed OpenTelemetry logs:
+
 ```bash
-LOG_LEVEL=debug
-NODE_ENV=development
+export DEBUG="@opentelemetry/*"
+npm start
 ```
-
-## Contributing
-
-1. Follow the existing code structure
-2. Add appropriate error handling
-3. Update documentation
-4. Test all endpoints
-
-## License
-
-ISC
-
-The main Express application that imports instrumentation first:
-
-```javascript
-// IMPORTANT: Load OpenTelemetry instrumentation first
-require('./instrumentation');
-
-const express = require('express');
-// ... rest of the application
-```
-
-## Dependencies
-
-- **express**: Web framework for Node.js
-- **@opentelemetry/sdk-node**: OpenTelemetry Node.js SDK
-- **@opentelemetry/sdk-trace-node**: Trace SDK with console exporter
-
-## Development
-
-### Scripts
-
-- `npm start` - Start the application
-- `npm run dev` - Start in development mode (same as start)
-
-### Adding Custom Tracing
-
-To add custom spans to your code:
-
-```javascript
-const { trace } = require('@opentelemetry/api');
-
-const tracer = trace.getTracer('my-service');
-
-app.get('/custom', async (req, res) => {
-  const span = tracer.startSpan('custom-operation');
-  
-  try {
-    // Your business logic here
-    span.addEvent('Processing request');
-    
-    res.json({ message: 'Custom traced operation' });
-  } catch (error) {
-    span.recordException(error);
-    span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
-    throw error;
-  } finally {
-    span.end();
-  }
-});
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **No traces appearing**: Ensure `instrumentation.js` is imported before Express
-2. **Module not found errors**: Run `npm install` to install dependencies
-3. **Port already in use**: Change the PORT environment variable or modify the port in `app.js`
-
-### Debug Mode
-
-The application includes detailed logging. Check console output for:
-- `[OpenTelemetry]` - Instrumentation logs
-- `[App]` - Application logs
-- Request logs with timestamps
 
 ## Next Steps
 
-To extend this example:
-
-1. **Add different exporters**: OTLP, Jaeger, Zipkin
-2. **Include metrics**: Add OpenTelemetry metrics collection
-3. **Add auto-instrumentations**: Include database and HTTP client tracing
-4. **Custom instrumentation**: Add business logic tracing
-5. **Sampling**: Configure trace sampling strategies
+- Add metrics collection with OpenTelemetry Metrics API
+- Integrate with cloud observability platforms (AWS X-Ray, Google Cloud Trace, etc.)
+- Add custom business metrics and dashboards
+- Implement distributed tracing across multiple services
 
 ## License
 
-ISC
+MIT

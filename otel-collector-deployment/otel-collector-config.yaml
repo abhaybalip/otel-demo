@@ -1,0 +1,175 @@
+# OpenTelemetry Collector Configuration
+# For deployment on a separate server
+# This configuration sets up the collector to:
+# 1. Scrape Prometheus metrics from remote Node.js applications
+# 2. Receive OTLP traces from remote applications
+# 3. Export both to Prometheus and Jaeger backends
+
+receivers:
+  # Prometheus receiver to scrape metrics from Node.js apps
+  prometheus:
+    config:
+      scrape_configs:
+        # Primary Node.js application
+        - job_name: 'node-otel-app-primary'
+          static_configs:
+            - targets: ['${NODE_APP_HOST:10.0.0.100}:${NODE_APP_PORT:3000}']
+          metrics_path: '/metrics'
+          scrape_interval: 15s
+          scrape_timeout: 10s
+          
+        # Additional Node.js applications can be added here
+        - job_name: 'node-otel-app-secondary'
+          static_configs:
+            - targets: ['${NODE_APP_HOST_2:10.0.0.101}:${NODE_APP_PORT_2:3000}']
+          metrics_path: '/metrics'
+          scrape_interval: 15s
+          scrape_timeout: 10s
+
+  # OTLP receiver for traces and metrics from OpenTelemetry SDK
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Health check receiver
+  prometheus/internal:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector-internal'
+          static_configs:
+            - targets: ['localhost:8888']
+
+processors:
+  # Memory limiter to prevent OOM - adjust based on server resources
+  memory_limiter:
+    limit_mib: 512
+    spike_limit_mib: 128
+    check_interval: 5s
+
+  # Batch processor for better performance
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # Resource processor to add deployment-specific attributes
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: "${DEPLOYMENT_ENV:production}"
+        action: upsert
+      - key: collector.version
+        value: "0.89.0"
+        action: upsert
+      - key: collector.instance
+        value: "${COLLECTOR_INSTANCE:collector-01}"
+        action: upsert
+      - key: datacenter
+        value: "${DATACENTER:dc1}"
+        action: upsert
+
+  # Transform processor to modify metrics if needed
+  transform:
+    metric_statements:
+      - context: metric
+        statements:
+          # Add collector instance label to all metrics
+          - set(attributes["collector_instance"], "${COLLECTOR_INSTANCE:collector-01}")
+
+exporters:
+  # Console exporter for debugging (disable in production)
+  logging:
+    loglevel: ${LOG_LEVEL:info}
+    sampling_initial: 2
+    sampling_thereafter: 500
+
+  # Prometheus Remote Write exporter
+  prometheusremotewrite:
+    endpoint: "${PROMETHEUS_ENDPOINT:http://10.0.0.200:9090}/api/v1/write"
+    tls:
+      insecure: true
+    # Authentication if needed
+    # headers:
+    #   Authorization: "Bearer ${PROMETHEUS_TOKEN}"
+    
+    # Resource to metric labels conversion
+    resource_to_telemetry_conversion:
+      enabled: true
+      
+    # Retry configuration
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+  # Jaeger exporter for traces
+  jaeger:
+    endpoint: "${JAEGER_ENDPOINT:10.0.0.201:14250}"
+    tls:
+      insecure: true
+    # Authentication if needed  
+    # headers:
+    #   Authorization: "Bearer ${JAEGER_TOKEN}"
+
+  # Additional Prometheus exporter (serves metrics endpoint)
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: "otelcol"
+    const_labels:
+      collector: "${COLLECTOR_INSTANCE:collector-01}"
+      datacenter: "${DATACENTER:dc1}"
+
+  # OTLP exporter for forwarding to other collectors/backends
+  otlp:
+    endpoint: "${OTLP_ENDPOINT:http://10.0.0.202:4317}"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    # Metrics pipeline
+    metrics:
+      receivers: [prometheus, prometheus/internal, otlp]
+      processors: [memory_limiter, resource, transform, batch]
+      exporters: [prometheusremotewrite, prometheus, logging]
+
+    # Traces pipeline
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [jaeger, logging]
+
+    # Logs pipeline (if needed)
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [logging]
+
+  extensions:
+    - health_check
+    - pprof
+    - zpages
+
+  telemetry:
+    logs:
+      level: "${LOG_LEVEL:info}"
+    metrics:
+      address: 0.0.0.0:8888
+      
+# Extensions configuration
+extensions:
+  # Health check extension
+  health_check:
+    endpoint: 0.0.0.0:13133
+    
+  # Performance profiling
+  pprof:
+    endpoint: 0.0.0.0:1777
+    
+  # Debug pages
+  zpages:
+    endpoint: 0.0.0.0:55679

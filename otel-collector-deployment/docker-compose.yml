@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  # OpenTelemetry Collector - Production Ready
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.89.0
+    container_name: otel-collector-prod
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+      - ./logs:/var/log/otelcol
+    ports:
+      # OTLP receivers
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      
+      # Prometheus metrics endpoint
+      - "8889:8889"   # Prometheus metrics served by collector
+      
+      # Internal monitoring
+      - "8888:8888"   # Collector internal metrics
+      - "13133:13133" # Health check endpoint
+      - "1777:1777"   # pprof endpoint
+      - "55679:55679" # zpages endpoint
+      
+    environment:
+      # Application targets (can be overridden via .env file)
+      - NODE_APP_HOST=${NODE_APP_HOST:-10.0.0.100}
+      - NODE_APP_PORT=${NODE_APP_PORT:-3000}
+      - NODE_APP_HOST_2=${NODE_APP_HOST_2:-10.0.0.101}
+      - NODE_APP_PORT_2=${NODE_APP_PORT_2:-3000}
+      
+      # Backend endpoints
+      - PROMETHEUS_ENDPOINT=${PROMETHEUS_ENDPOINT:-http://10.0.0.200:9090}
+      - JAEGER_ENDPOINT=${JAEGER_ENDPOINT:-10.0.0.201:14250}
+      - OTLP_ENDPOINT=${OTLP_ENDPOINT:-http://10.0.0.202:4317}
+      
+      # Deployment configuration
+      - DEPLOYMENT_ENV=${DEPLOYMENT_ENV:-production}
+      - COLLECTOR_INSTANCE=${COLLECTOR_INSTANCE:-collector-01}
+      - DATACENTER=${DATACENTER:-dc1}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # Optional authentication tokens
+      - PROMETHEUS_TOKEN=${PROMETHEUS_TOKEN:-}
+      - JAEGER_TOKEN=${JAEGER_TOKEN:-}
+      
+    restart: unless-stopped
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:13133"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    networks:
+      - otel-network
+
+  # Optional: Local Prometheus for testing collector metrics
+  prometheus-local:
+    image: prom/prometheus:v2.47.2
+    container_name: prometheus-local
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus-local.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-remote-write-receiver'
+    networks:
+      - otel-network
+    profiles:
+      - local-testing
+
+  # Optional: Local Jaeger for testing
+  jaeger-local:
+    image: jaegertracing/all-in-one:1.50
+    container_name: jaeger-local
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "14250:14250" # gRPC
+      - "14268:14268" # HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - otel-network
+    profiles:
+      - local-testing
+
+volumes:
+  prometheus_data:
+
+networks:
+  otel-network:
+    driver: bridge
